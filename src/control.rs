@@ -41,6 +41,7 @@ impl<T, U> Functor<T, U> for (T,)  {
 pub trait Apprecative:Functor {
     fn pure(){}
 
+    // 演算子定義がないから呼び出すときはひたすら左結合？
     fn apply(){}
 }
 
