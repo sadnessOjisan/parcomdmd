@@ -33,6 +33,7 @@ impl<T, U> Functor<T, U> for (T,)  {
     }
 }
 
+// functor の下に作りたい (どうやって fmap をつかえばいい？)
 pub fn pure() {}
 
 pub fn apply() {}

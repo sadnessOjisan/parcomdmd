@@ -1,6 +1,7 @@
 pub fn get_moji(moji: String) -> Result<(String, String), String> {
     let first = moji.chars().nth(0);
     match first {
+            // head と tail で分けられないんだっけ
         Some(txt) => {
             let orig = String::from(txt);
             let (f, s) = orig.split_at(1);
@@ -15,6 +16,7 @@ struct Input {
     position: u32,
 }
 
+// trait の方が良かった？
 struct Parser {
     run: dyn Fn(
         Input,
