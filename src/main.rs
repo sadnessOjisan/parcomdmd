@@ -1,7 +1,6 @@
-use parcomdmd::control::functor;
-
+use parcomdmd::control::fmap;
 fn main() {
-    functor();
+    fmap();
     let orig = String::from("1");
     let (f, s) = orig.split_at(1);
       println!("{}/{}",f,s);
