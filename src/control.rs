@@ -33,7 +33,18 @@ impl<T, U> Functor<T, U> for (T,)  {
     }
 }
 
+
 // functor の下に作りたい (どうやって fmap をつかえばいい？)
+// :trait でよさそう
+
+// @see https://qiita.com/emo/items/bda7ea17bdec9555782d
+pub trait Apprecative:Functor {
+    fn pure(){}
+
+    fn apply(){}
+}
+
+
 pub fn pure() {}
 
 pub fn apply() {}
