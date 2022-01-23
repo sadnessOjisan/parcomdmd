@@ -1,5 +1,5 @@
 // @see https://gist.github.com/sharpjs/31f83fa4f2e258bcd72a
-pub fn fmap (){}
+pub fn fmap() {}
 
 // OCaml
 // let map (f : 'a -> 'b) (p : 'a parser) : 'b parser =
@@ -10,12 +10,12 @@ pub fn fmap (){}
 //         | input', Ok x -> (input', Ok (f x))
 //         | input', Error error -> (input', Error error));
 //   }
-fn map(f: Box<dyn Fn(i32) -> i32>, a: i32) -> i32{
+fn map(f: Box<dyn Fn(i32) -> i32>, a: i32) -> i32 {
     3
 }
 
-pub fn pure(){}
+pub fn pure() {}
 
-pub fn apply(){}
+pub fn apply() {}
 
-pub fn either(){}
+pub fn either() {}
