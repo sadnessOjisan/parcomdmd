@@ -1,8 +1,4 @@
 // @see https://gist.github.com/sharpjs/31f83fa4f2e258bcd72a
-pub fn fmap() {
-    let a = (0..).map(|n| n * n);
-}
-
 fn fmap_vec(f: Box<dyn FnMut(i32) -> i32>, a: &Vec<i32>) -> Vec<i32> {
     let mut b = vec![];
     for &num in a {
@@ -28,18 +24,13 @@ mod tests {
     }
 }
 
-// OCaml
-// let map (f : 'a -> 'b) (p : 'a parser) : 'b parser =
-// {
-//     run =
-//       (fun input ->
-//         match p.run input with
-//         | input', Ok x -> (input', Ok (f x))
-//         | input', Error error -> (input', Error error));
-//   }
+pub fn pure_vec(a:i32) -> Vec<i32>{
+    vec![a]
+}
 
-pub fn pure() {}
-
-pub fn apply() {}
+pub fn apply_vec(f: Vec<Box<dyn FnMut(i32) -> i32>>,a: Vec<i32>) -> Vec<i32> {
+    let f0 = f[0];
+    fmap_vec(f0, &a)
+}
 
 pub fn either() {}
