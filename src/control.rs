@@ -1,5 +1,32 @@
 // @see https://gist.github.com/sharpjs/31f83fa4f2e258bcd72a
-pub fn fmap() {}
+pub fn fmap() {
+    let a = (0..).map(|n| n * n);
+}
+
+fn fmap_vec(f: Box<dyn FnMut(i32) -> i32>, a: &Vec<i32>) -> Vec<i32> {
+    let mut b = vec![];
+    for &num in a {
+        b.push(f(num));
+    }
+    b
+
+    // 本当はこうしたい
+    // Box<dyn FnMut(i32) -> i32> を map に入れられるようにするためにはどうすればいいのだろうか？
+    // iterator.Map は sized を要求しているのえ、Boxに写した後だともう無理？
+    // a.iter().map(f).collect::<Vec<_>>();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::fmap_vec;
+    #[test]
+    fn fmap_vec_test() {
+        fn twice(x: i32) -> i32 {
+            x + x
+        }
+        assert_eq!(fmap_vec(Box::new(twice), &vec![1, 2, 3]), vec![2, 4, 6]);
+    }
+}
 
 // OCaml
 // let map (f : 'a -> 'b) (p : 'a parser) : 'b parser =
@@ -10,41 +37,6 @@ pub fn fmap() {}
 //         | input', Ok x -> (input', Ok (f x))
 //         | input', Error error -> (input', Error error));
 //   }
-fn map(f: Box<dyn Fn(i32) -> i32>, a: i32) -> i32 {
-    3
-}
-
-// haskell
-// class Functor f where
-//   fmap :: (a -> b) -> f a -> f b
-pub trait Functor<T, U> {
-    type Out;
-
-    fn fmap<F: Fn(&T) -> U>(&self, F) -> Self::Out;
-}
-
-// Arity 1
-impl<T, U> Functor<T, U> for (T,)  {
-    type Out = (U,);
-
-    #[inline(always)]
-    fn fmap<F: Fn(&T) -> U>(&self, f: F) -> Self::Out {
-        (f(&self.0),)
-    }
-}
-
-
-// functor の下に作りたい (どうやって fmap をつかえばいい？)
-// :trait でよさそう
-
-// @see https://qiita.com/emo/items/bda7ea17bdec9555782d
-pub trait Apprecative:Functor {
-    fn pure(){}
-
-    // 演算子定義がないから呼び出すときはひたすら左結合？
-    fn apply(){}
-}
-
 
 pub fn pure() {}
 

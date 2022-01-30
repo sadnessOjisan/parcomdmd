@@ -1,8 +1,9 @@
 // こういう関数の型と制約を作りたい。後述のparse関数の引数に入れたい
+// parser を引数に取った方が良さそう
 pub fn get_moji(moji: String) -> Result<(String, String), String> {
     let first = moji.chars().nth(0);
     match first {
-            // head と tail で分けられないんだっけ
+        // head と tail で分けられないんだっけ
         Some(txt) => {
             let orig = String::from(txt);
             let (f, s) = orig.split_at(1);
@@ -12,20 +13,20 @@ pub fn get_moji(moji: String) -> Result<(String, String), String> {
     }
 }
 
-pub fn parse_md(){
+pub fn parse_md() {
     // parse block
-      // parse inline
-      // parse block
-      // parse head
-      // parse paragraph
-      // ...
     // parse inline
-      // parse span
-      // parse text
-      // ...
+    // parse block
+    // parse head
+    // parse paragraph
+    // ...
+    // parse inline
+    // parse span
+    // parse text
+    // ...
 }
 
-pub fn parse(parser: Parser){
+pub fn parse(parser: Parser) {
     parser.run()
 }
 
@@ -36,7 +37,7 @@ struct Input {
 
 // trait の方が良かった？
 struct Parser {
-   run: dyn Fn(
+    run: dyn Fn(
         Input,
     ) -> Result<
         (
