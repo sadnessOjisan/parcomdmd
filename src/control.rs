@@ -1,5 +1,5 @@
 // @see https://gist.github.com/sharpjs/31f83fa4f2e258bcd72a
-fn fmap_vec(f: Box<dyn FnMut(i32) -> i32>, a: &Vec<i32>) -> Vec<i32> {
+fn fmap_vec(f: Box<dyn Fn(i32) -> i32>, a: &Vec<i32>) -> Vec<i32> {
     let mut b = vec![];
     for &num in a {
         b.push(f(num));
@@ -28,7 +28,7 @@ pub fn pure_vec(a:i32) -> Vec<i32>{
     vec![a]
 }
 
-pub fn apply_vec(f: Vec<Box<dyn FnMut(i32) -> i32>>,a: Vec<i32>) -> Vec<i32> {
+pub fn apply_vec(f: Vec<Box<dyn Fn(i32) -> i32>>,a: Vec<i32>) -> Vec<i32> {
     let f0 = f[0];
     fmap_vec(f0, &a)
 }
