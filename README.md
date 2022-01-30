@@ -2,6 +2,10 @@
 
 parser combinator of monad md parser
 
+```
+cargo test
+```
+
 ## 方針
 
 1. parser の型を定義
