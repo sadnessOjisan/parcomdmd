@@ -1,8 +1,9 @@
+use std::any;
+
 struct Input {
     pos: u32,
     text: String,
 }
-
 
 struct Ast {}
 
@@ -18,8 +19,27 @@ fn any_char(input: String) -> Option<(String, String)> {
             let str = v.to_string();
             Some((str, copy_string.split_off(1)))
         }
-        None => None
+        None => None,
     }
+}
+
+// 条件を渡すとパーサーを作ってくれる
+fn sat(f: impl Fn(String) -> bool) -> Box<dyn Fn(String) -> Option<(String, String)>> {
+    let hoge = |input: String| -> Option<(String, String)> {
+        let item = any_char(input);
+        match item {
+            Some(v) => {
+                let parsed = v.0;
+                let is_ok = f(parsed);
+                // if is_ok {
+                //     None
+                // }
+                None
+            }
+            None => None,
+        }
+    };
+    Box::new(hoge)
 }
 
 #[cfg(test)]

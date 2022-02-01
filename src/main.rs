@@ -1,6 +1,6 @@
 fn main() {
     let v = any_char("a".to_string());
-    println!("{:?}",v);
+    println!("{:?}", v);
 }
 
 fn any_char(input: String) -> Option<(String, String)> {
@@ -11,6 +11,6 @@ fn any_char(input: String) -> Option<(String, String)> {
             let str = v.to_string();
             Some((str, copy_string.split_off(1)))
         }
-        None => None
+        None => None,
     }
 }
