@@ -24,22 +24,40 @@ fn any_char(input: String) -> Option<(String, String)> {
 }
 
 // 条件を渡すとパーサーを作ってくれる
-fn sat(f: impl Fn(String) -> bool) -> Box<dyn Fn(String) -> Option<(String, String)>> {
-    let hoge = |input: String| -> Option<(String, String)> {
+fn sat(f: impl Fn(String) -> bool + 'static) -> Box<dyn Fn(String) -> Option<(String, String)>> {
+    let hoge = move |input: String| -> Option<(String, String)> {
         let item = any_char(input);
         match item {
             Some(v) => {
-                let parsed = v.0;
-                let is_ok = f(parsed);
-                // if is_ok {
-                //     None
-                // }
+                let parsed = &v.0;
+                let is_ok = f(parsed.clone());
+                if is_ok {
+                    return Some(v)
+                }
                 None
             }
             None => None,
         }
     };
     Box::new(hoge)
+}
+
+fn is_plus(input: String)->bool{
+    input == "+"
+}
+
+fn is_factor(input: String)->bool{
+    input == "*"
+}
+
+fn plus(input: String) -> Option<(String, String)>{
+    let plus = sat(is_plus);
+    plus(input)
+}
+
+fn factor(input: String) -> Option<(String, String)>{
+    let plus = sat(is_factor);
+    plus(input)
 }
 
 #[cfg(test)]
