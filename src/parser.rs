@@ -9,6 +9,8 @@ struct Ast {}
 
 struct Parser {}
 
+// any_char, plus とかの parser を共通の型で縛りたい
+
 fn any_char(input: &str) -> Option<(String, String)> {
     let mut copy_string = input.clone().to_string();
     let first = copy_string.chars().nth(0);
@@ -63,6 +65,31 @@ fn factor(input: &str) -> Option<(String, String)> {
     plus(input)
 }
 
+// OCaml
+//
+// let many (p : 'a parser) : 'a list parser =
+//  {
+//    run =
+//      (fun input ->
+//        let xs = ref [] in
+//        let rec loop input =
+//          let input', result = p.run input in
+//          match result with
+//          | Ok x ->
+//              xs := x :: !xs;
+//              loop input'
+//          | Error _ -> input
+//        in
+//        let input' = loop input in
+//        (input', Ok (!xs |> List.rev)));
+//  }
+
+//   左結合
+// ((many digit) "3333a")
+fn many(parser: impl Fn(&str) -> Option<(String, String)>) -> Vec<Box<dyn Fn(&str) -> Option<(String, String)>>> {
+
+}
+
 #[cfg(test)]
 mod tests {
     use crate::parser::{any_char, plus};
@@ -100,6 +127,6 @@ mod tests {
     #[test]
     fn not_included_plus() {
         let actual = plus("12");
-        assert_eq!(actual,None);
+        assert_eq!(actual, None);
     }
 }
