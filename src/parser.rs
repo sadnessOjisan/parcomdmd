@@ -1,3 +1,4 @@
+use core::slice::SlicePattern;
 use std::any;
 
 struct Input {
@@ -11,24 +12,32 @@ struct Parser {}
 
 // any_char, plus とかの parser を共通の型で縛りたい
 
-fn any_char(input: &str) -> Option<(String, String)> {
-    let mut copy_string = input.clone().to_string();
-    let first = copy_string.chars().nth(0);
-    match first {
-        Some(v) => {
-            let str = v.to_string().as_str().to_owned();
-            let a = copy_string.split_off(1);
-            // &str を split_off するために String を経由させるの良くなさそう
-            return Some((str, a));
+fn any_char<'a>(input: &'a str) -> Option<(&'a str, &'a str)> {
+    match &input.chars().nth(0) {
+        Some(_) => {
+            let a = &input[1..];
+            return Some((&input[..1], a));
         }
         None => None,
     }
+    // match &input.as_bytes() {
+    //     [first, rest @ ..] => {
+    //         Some((first, rest))
+    //     }
+    //     [] => {
+    //         None
+    //     }
+    // }
 }
 
+// lto: link time optimization
+
 // 条件を渡すとパーサーを作ってくれる
-fn sat(f: impl Fn(&str) -> bool + 'static) -> Box<dyn Fn(&str) -> Option<(String, String)>> {
-    let hoge: Box<dyn Fn(&str) -> Option<(String, String)>> =
-        Box::new(move |input: &str| -> Option<(String, String)> {
+fn sat<'a>(
+    f: impl Fn(&'a str) -> bool + 'static,
+) -> Box<dyn Fn(&'a str) -> Option<(&'a str, &'a str)>> {
+    let hoge: Box<dyn Fn(&'a str) -> Option<(&'a str, &'a str)>> =
+        Box::new(move |input: &'a str| -> Option<(&'a str, &'a str)> {
             let item = any_char(input);
             match item {
                 Some(v) => {
@@ -44,7 +53,20 @@ fn sat(f: impl Fn(&str) -> bool + 'static) -> Box<dyn Fn(&str) -> Option<(String
                 None => None,
             }
         });
-    Box::new(hoge)
+    hoge
+}
+
+fn is_num(input: &str) -> bool {
+    input == "1"
+        || input == "2"
+        || input == "3"
+        || input == "4"
+        || input == "5"
+        || input == "6"
+        || input == "7"
+        || input == "8"
+        || input == "9"
+        || input == "0"
 }
 
 fn is_plus(input: &str) -> bool {
@@ -55,13 +77,18 @@ fn is_factor(input: &str) -> bool {
     input == "*"
 }
 
-fn plus(input: &str) -> Option<(String, String)> {
+fn plus(input: &str) -> Option<(&str, &str)> {
     let plus = sat(is_plus);
     plus(input)
 }
 
-fn factor(input: &str) -> Option<(String, String)> {
+fn factor(input: &str) -> Option<(&str, &str)> {
     let plus = sat(is_factor);
+    plus(input)
+}
+
+fn num(input: &str) -> Option<(&str, &str)> {
+    let plus = sat(is_num);
     plus(input)
 }
 
@@ -84,10 +111,10 @@ fn factor(input: &str) -> Option<(String, String)> {
 //        (input', Ok (!xs |> List.rev)));
 //  }
 
-//   左結合
-// ((many digit) "3333a")
-fn many(parser: impl Fn(&str) -> Option<(String, String)>) -> Vec<Box<dyn Fn(&str) -> Option<(String, String)>>> {
-
+// parse many digit "3333a"
+// ((many digit) "3333a") -> Some(("3333","a"))
+fn many<'a>(parser: impl Fn(&'a str) -> Option<(&'a str, &'a str)>) {
+    todo!("")
 }
 
 #[cfg(test)]
@@ -97,7 +124,7 @@ mod tests {
     #[test]
     fn any_char_test() {
         let actual = any_char("test");
-        assert_eq!(actual, Some(("t".to_string(), "est".to_string())));
+        assert_eq!(actual, Some(("t", "est")));
     }
 
     #[test]
@@ -109,19 +136,19 @@ mod tests {
     #[test]
     fn any_char_test_single() {
         let actual = any_char("a");
-        assert_eq!(actual, Some(("a".to_string(), "".to_string())));
+        assert_eq!(actual, Some(("a", "")));
     }
 
     #[test]
     fn plus_test() {
         let actual = plus("+");
-        assert_eq!(actual, Some(("+".to_string(), "".to_string())));
+        assert_eq!(actual, Some(("+", "")));
     }
 
     #[test]
     fn plus_test_with_rest() {
         let actual = plus("+12");
-        assert_eq!(actual, Some(("+".to_string(), "12".to_string())));
+        assert_eq!(actual, Some(("+", "12")));
     }
 
     #[test]
