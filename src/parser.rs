@@ -1,4 +1,4 @@
-use std::any;
+use std::{any, vec};
 
 struct Input {
     pos: u32,
@@ -26,9 +26,7 @@ fn any_char<'a>(input: &'a str) -> Option<(char, &'a str)> {
 // lto: link time optimization
 
 // 条件を渡すとパーサーを作ってくれる
-fn sat<'a>(
-    f: impl Fn(char) -> bool + 'static,
-) -> Box<dyn Fn(&'a str) -> Option<(char, &'a str)>> {
+fn sat<'a>(f: impl Fn(char) -> bool + 'static) -> Box<dyn Fn(&'a str) -> Option<(char, &'a str)>> {
     let parser: Box<dyn Fn(&'a str) -> Option<(char, &'a str)>> =
         Box::new(move |input: &'a str| -> Option<(char, &'a str)> {
             let item = any_char(input);
@@ -87,13 +85,38 @@ fn num(input: &str) -> Option<(char, &str)> {
 
 // parse many digit "3333a"
 // ((many digit) "3333a") -> Some(("3333","a"))
-fn many<'a>(parser: impl Fn(&'a str) -> Option<(&'a str, &'a str)>) -> Option<(&'a Vec<char>, &'a str)> {
-    None
+fn many<'a>(
+    parser: impl Fn(&'a str) -> Option<(char, &'a str)>,
+) -> Box<dyn FnOnce(&'a str) -> Option<(Vec<char>, &'a str)>> {
+    let mut result = (vec![], "");
+    let p = Box::new(|x| {
+        let xc = x.clone();
+        result.1 = xc;
+        loop {
+            let parsed = parser(x);
+            match parsed {
+                Some(v) => {
+                    result.0.push(v.0);
+                    result.1 = v.1;
+                    x = v.1;
+                }
+                None => break,
+            }
+        }
+        if (result.0.len() == 0) {
+            None
+        } else {
+            Some(result)
+        }
+    });
+    p
 }
 
 #[cfg(test)]
 mod tests {
     use crate::parser::{any_char, plus};
+
+    use super::{many, num};
 
     #[test]
     fn any_char_test() {
@@ -129,5 +152,11 @@ mod tests {
     fn not_included_plus() {
         let actual = plus("12");
         assert_eq!(actual, None);
+    }
+
+    fn many_parse() {
+        let many_parser = many(num);
+        let actual = many_parser("123a");
+        assert_eq!(actual, Some((vec!['1', '2', '3'], "a")));
     }
 }
