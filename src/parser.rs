@@ -95,23 +95,18 @@ fn naive_discard_left(pA: impl Fn(&str) -> Option<(char, &str)>, pB: impl Fn(&st
 // 右でパースした後に、その結果を入力に右でパーサーした結果を出力するパーサー
 fn naive_discard_right(pA: impl Fn(&str) -> Option<(char, &str)>, pB: impl Fn(&str) -> Option<(char, &str)>)-> impl Fn(&str) -> Option<(char, &str)>{
     move |input| {
-        let left_parsed = pA(input);
-        match left_parsed {
-            Some(s) => {
-                let parsed = pB(s.1);
-                match parsed {
+        let left_parsed = pA(input).and_then(|(parsed, rest)|{
+            let parsed2 = pB(rest);
+            match parsed2 {
                     Some(s2) => {
-                        Some((s.0, s2.1))
+                        Some((parsed, s2.1))
                     }
                     None => {
                         None
                     }
                 }
-            },
-            None => {
-                None
-            }
-        }
+        });
+        left_parsed
     }
 }
 
