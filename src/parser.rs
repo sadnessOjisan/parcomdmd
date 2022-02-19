@@ -85,15 +85,10 @@ fn many(
 // ナイーブに実装。あとで monadic に書き換える
 fn naive_discard_left(pA: impl Fn(&str) -> Option<(char, &str)>, pB: impl Fn(&str) -> Option<(char, &str)>)-> impl Fn(&str) -> Option<(char, &str)>{
     move |input| {
-        let left_parsed = pA(input);
-        match left_parsed {
-            Some(s) => {
-                pB(s.1)
-            },
-            None => {
-                None
-            }
-        }
+        let left_parsed = pA(input).and_then(|(parsed, rest)|{
+            pB(rest)
+        });
+        left_parsed
     }
 }
 
