@@ -1,7 +1,3 @@
-
-
-
-   
 #[allow(dead_code)]
 struct Input {
     pos: u32,
@@ -87,7 +83,7 @@ fn many(
 // let get_second = naive_left(any_char, any_char)
 // get_second("abcd") // [b, cd]
 // ナイーブに実装。あとで monadic に書き換える
-fn naive_left(pA: impl Fn(&str) -> Option<(char, &str)>, pB: impl Fn(&str) -> Option<(char, &str)>)-> impl Fn(&str) -> Option<(char, &str)>{
+fn naive_discard_left(pA: impl Fn(&str) -> Option<(char, &str)>, pB: impl Fn(&str) -> Option<(char, &str)>)-> impl Fn(&str) -> Option<(char, &str)>{
     move |input| {
         let left_parsed = pA(input);
         match left_parsed {
@@ -102,7 +98,7 @@ fn naive_left(pA: impl Fn(&str) -> Option<(char, &str)>, pB: impl Fn(&str) -> Op
 }
 
 // 右でパースした後に、その結果を入力に右でパーサーした結果を出力するパーサー
-fn naive_right(pA: impl Fn(&str) -> Option<(char, &str)>, pB: impl Fn(&str) -> Option<(char, &str)>)-> impl Fn(&str) -> Option<(char, &str)>{
+fn naive_discard_right(pA: impl Fn(&str) -> Option<(char, &str)>, pB: impl Fn(&str) -> Option<(char, &str)>)-> impl Fn(&str) -> Option<(char, &str)>{
     move |input| {
         let left_parsed = pA(input);
         match left_parsed {
@@ -172,15 +168,15 @@ mod tests {
     }
 
     #[test]
-    fn naive_left_parse(){
-        let left_parser = naive_left(any_char, any_char);
+    fn naive_discard_left_test(){
+        let left_parser = naive_discard_left(any_char, any_char);
         let actual = left_parser("abcde");
         assert_eq!(actual, Some(('b', "cde")));
     }
 
     #[test]
-    fn naive_right_parse(){
-        let right_parser = naive_right(any_char, any_char);
+    fn naive_discard_right_test(){
+        let right_parser = naive_discard_right(any_char, any_char);
         let actual = right_parser("abcde");
         assert_eq!(actual, Some(('a', "cde")));
     }
@@ -189,7 +185,7 @@ mod tests {
     // let get_middle =right_parser(left_parser(get_char, get_char), get_char)
     #[test]
     fn middle(){
-        let middle_parser = naive_left(any_char, naive_right(any_char, any_char));
+        let middle_parser = naive_discard_left(any_char, naive_discard_right(any_char, any_char));
         let actual = middle_parser("abc");
         assert_eq!(actual, Some(('b', "")));
     }
