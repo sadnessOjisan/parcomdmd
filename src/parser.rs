@@ -82,8 +82,7 @@ fn many(
 // 左でパースした後に、その結果を入力に右でパーサーした結果を出力するパーサー
 // let get_second = naive_left(any_char, any_char)
 // get_second("abcd") // [b, cd]
-// ナイーブに実装。あとで monadic に書き換える
-fn naive_discard_left(pA: impl Fn(&str) -> Option<(char, &str)>, pB: impl Fn(&str) -> Option<(char, &str)>)-> impl Fn(&str) -> Option<(char, &str)>{
+fn discard_left(pA: impl Fn(&str) -> Option<(char, &str)>, pB: impl Fn(&str) -> Option<(char, &str)>)-> impl Fn(&str) -> Option<(char, &str)>{
     move |input| {
         let left_parsed = pA(input).and_then(|(parsed, rest)|{
             pB(rest)
@@ -97,6 +96,7 @@ fn naive_discard_right(pA: impl Fn(&str) -> Option<(char, &str)>, pB: impl Fn(&s
     move |input| {
         let left_parsed = pA(input).and_then(|(parsed, rest)|{
             let parsed2 = pB(rest);
+            // Q: ここも and_then で書きたいが、parsed を使いたいのでかけない
             match parsed2 {
                     Some(s2) => {
                         Some((parsed, s2.1))
@@ -159,7 +159,7 @@ mod tests {
 
     #[test]
     fn naive_discard_left_test(){
-        let left_parser = naive_discard_left(any_char, any_char);
+        let left_parser = discard_left(any_char, any_char);
         let actual = left_parser("abcde");
         assert_eq!(actual, Some(('b', "cde")));
     }
@@ -175,7 +175,7 @@ mod tests {
     // let get_middle =right_parser(left_parser(get_char, get_char), get_char)
     #[test]
     fn middle(){
-        let middle_parser = naive_discard_left(any_char, naive_discard_right(any_char, any_char));
+        let middle_parser = discard_left(any_char, naive_discard_right(any_char, any_char));
         let actual = middle_parser("abc");
         assert_eq!(actual, Some(('b', "")));
     }
