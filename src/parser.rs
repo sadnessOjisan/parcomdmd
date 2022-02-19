@@ -1,74 +1,77 @@
-#[allow(dead_code)]
-struct Input {
-    pos: u32,
-    text: String,
+struct Nat {
+    value: i64
 }
 
-#[allow(dead_code)]
-struct Ast {}
+enum Factor {
+    Nat(Nat),
+    Paren(Box<Expr>)
+}
 
-#[allow(dead_code)]
-struct Parser {}
+
+enum Term {
+    Nat(Nat),
+    Factor(Factor)
+}
+
+enum Expr {
+    Plus(Box<Expr>, Box<Expr>),
+    Term(Term)
+}
+
+struct Ast {
+    expr: Expr
+}
+
 
 // any_char, plus とかの parser を共通の型で縛りたい
 
-#[allow(dead_code)]
-fn any_char(input: &str) -> Option<(char, &str)> {
+pub fn any_char(input: &str) -> Option<(char, &str)> {
     input.chars().next().map(|first| (first, &input[1..]))
 }
 
 // 条件を渡すとパーサーを作ってくれる
-#[allow(dead_code)]
-fn sat(pred: impl Fn(char) -> bool) -> impl FnOnce(&str) -> Option<(char, &str)> {
+pub fn sat(pred: impl Fn(char) -> bool) -> impl FnOnce(&str) -> Option<(char, &str)> {
     move |input| -> Option<(char, &str)> {
         any_char(input).and_then(|(parsed, rest)| pred(parsed).then(|| (parsed, rest)))
     }
 }
 
-fn prefix(pr: char) -> impl FnOnce(&str) -> Option<(char, &str)> {
+pub fn prefix(pr: char) -> impl FnOnce(&str) -> Option<(char, &str)> {
     let pred = move |input: char| -> bool { pr == input };
     sat(pred)
 }
 
-fn is_target_char(tc: char) {}
 
-#[allow(dead_code)]
-fn is_digit(input: char) -> bool {
+pub fn is_digit(input: char) -> bool {
     matches!(input, '0'..='9')
 }
 
-#[allow(dead_code)]
-fn is_plus(input: char) -> bool {
+pub fn is_plus(input: char) -> bool {
     matches!(input, '+')
 }
 
-#[allow(dead_code)]
-fn is_factor(input: char) -> bool {
+pub fn is_factor(input: char) -> bool {
     matches!(input, '*')
 }
 
-#[allow(dead_code)]
-fn plus(input: &str) -> Option<(char, &str)> {
+pub fn plus(input: &str) -> Option<(char, &str)> {
     let plus = sat(is_plus);
     plus(input)
 }
 
-#[allow(dead_code)]
-fn factor(input: &str) -> Option<(char, &str)> {
+pub fn factor(input: &str) -> Option<(char, &str)> {
     let plus = sat(is_factor);
     plus(input)
 }
 
-#[allow(dead_code)]
-fn digit(input: &str) -> Option<(char, &str)> {
+pub fn digit(input: &str) -> Option<(char, &str)> {
     let plus = sat(is_digit);
     plus(input)
 }
 
 // parse many digit "3333a"
 // ((many digit) "3333a") -> Some(("3333","a"))
-#[allow(dead_code)]
-fn many(
+pub fn many(
     parser: impl Fn(&str) -> Option<(char, &str)>,
 ) -> impl FnOnce(&str) -> Option<(String, &str)> {
     move |input| {
@@ -86,7 +89,7 @@ fn many(
 // 左でパースした後に、その結果を入力に右でパーサーした結果を出力するパーサー
 // let get_second = naive_left(any_char, any_char)
 // get_second("abcd") // [b, cd]
-fn discard_left(
+pub fn discard_left(
     pA: impl Fn(&str) -> Option<(char, &str)>,
     pB: impl Fn(&str) -> Option<(char, &str)>,
 ) -> impl Fn(&str) -> Option<(char, &str)> {
@@ -97,7 +100,7 @@ fn discard_left(
 }
 
 // 右でパースした後に、その結果を入力に右でパーサーした結果を出力するパーサー
-fn naive_discard_right(
+pub fn naive_discard_right(
     pA: impl Fn(&str) -> Option<(char, &str)>,
     pB: impl Fn(&str) -> Option<(char, &str)>,
 ) -> impl Fn(&str) -> Option<(char, &str)> {
@@ -114,7 +117,7 @@ fn naive_discard_right(
     }
 }
 
-fn alternative(
+pub fn alternative(
     pA: impl Fn(&str) -> Option<(char, &str)>,
     pB: impl Fn(&str) -> Option<(char, &str)>,
 ) -> impl Fn(&str) -> Option<(char, &str)> {
@@ -126,9 +129,6 @@ fn alternative(
         }
     }
 }
-
-// exec(1 + 3)
-fn exec(expr: &str) {}
 
 #[cfg(test)]
 mod tests {
