@@ -39,7 +39,7 @@ fn is_target_char(tc: char){
 }
 
 #[allow(dead_code)]
-fn is_num(input: char) -> bool {
+fn is_digit(input: char) -> bool {
     matches!(input, '0'..='9')
 }
 
@@ -66,8 +66,8 @@ fn factor(input: &str) -> Option<(char, &str)> {
 }
 
 #[allow(dead_code)]
-fn num(input: &str) -> Option<(char, &str)> {
-    let plus = sat(is_num);
+fn digit(input: &str) -> Option<(char, &str)> {
+    let plus = sat(is_digit);
     plus(input)
 }
 
@@ -182,7 +182,7 @@ mod tests {
 
     #[test]
     fn many_parse() {
-        let many_parser = many(num);
+        let many_parser = many(digit);
         let actual = many_parser("123a");
         assert_eq!(actual, Some(("123".to_string(), "a")));
     }
@@ -215,5 +215,14 @@ mod tests {
         let start_paren_parser = prefix('(');
         let actual = start_paren_parser("(1+2)*3");
         assert_eq!(actual, Some(('(', "1+2)*3")));
+    }
+
+    #[test]
+    fn alternative_test(){
+        let plus_or_digit_parser = alternative(digit, plus);
+        let actual = plus_or_digit_parser("+2");
+        assert_eq!(actual, Some(('+', "2")));
+        let actual = plus_or_digit_parser("1+2");
+        assert_eq!(actual, Some(('1', "+2")));
     }
 }
