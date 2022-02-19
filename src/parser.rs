@@ -27,6 +27,17 @@ fn sat(
     }
 }
 
+fn prefix(pr: char) -> impl FnOnce(&str) -> Option<(char, &str)>{
+    let pred = move |input: char|->bool{
+        pr == input
+    };
+    sat(pred)
+}
+
+fn is_target_char(tc: char){
+
+}
+
 #[allow(dead_code)]
 fn is_num(input: char) -> bool {
     matches!(input, '0'..='9')
@@ -110,6 +121,25 @@ fn naive_discard_right(pA: impl Fn(&str) -> Option<(char, &str)>, pB: impl Fn(&s
     }
 }
 
+fn alternative(pA: impl Fn(&str) -> Option<(char, &str)>, pB: impl Fn(&str) -> Option<(char, &str)>) ->impl Fn(&str) -> Option<(char, &str)> {
+    move |input| {
+        let parsed = pA(input);
+        match parsed {
+            Some(p) => {
+                Some(p)
+            },
+            None => {
+                pB(input)
+            }
+        }
+    }
+}
+
+// exec(1 + 3)
+fn exec(expr: &str){
+
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -178,5 +208,12 @@ mod tests {
         let middle_parser = discard_left(any_char, naive_discard_right(any_char, any_char));
         let actual = middle_parser("abc");
         assert_eq!(actual, Some(('b', "")));
+    }
+
+    #[test]
+    fn prefix_test(){
+        let start_paren_parser = prefix('(');
+        let actual = start_paren_parser("(1+2)*3");
+        assert_eq!(actual, Some(('(', "1+2)*3")));
     }
 }
