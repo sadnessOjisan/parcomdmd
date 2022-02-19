@@ -22,6 +22,11 @@ struct Ast {
     expr: Expr
 }
 
+pub fn exec(input: &str) -> Ast {
+    // どのようにして parser を呼び出して、AST を構築すべきか？
+    // パーサの引数に渡して行って破壊的変更していく？
+}
+
 
 // any_char, plus とかの parser を共通の型で縛りたい
 
