@@ -19,24 +19,18 @@ fn any_char(input: &str) -> Option<(char, &str)> {
 
 // 条件を渡すとパーサーを作ってくれる
 #[allow(dead_code)]
-fn sat(
-    pred: impl Fn(char) -> bool,
-) -> impl FnOnce(&str) -> Option<(char, &str)> {
+fn sat(pred: impl Fn(char) -> bool) -> impl FnOnce(&str) -> Option<(char, &str)> {
     move |input| -> Option<(char, &str)> {
         any_char(input).and_then(|(parsed, rest)| pred(parsed).then(|| (parsed, rest)))
     }
 }
 
-fn prefix(pr: char) -> impl FnOnce(&str) -> Option<(char, &str)>{
-    let pred = move |input: char|->bool{
-        pr == input
-    };
+fn prefix(pr: char) -> impl FnOnce(&str) -> Option<(char, &str)> {
+    let pred = move |input: char| -> bool { pr == input };
     sat(pred)
 }
 
-fn is_target_char(tc: char){
-
-}
+fn is_target_char(tc: char) {}
 
 #[allow(dead_code)]
 fn is_digit(input: char) -> bool {
@@ -71,7 +65,6 @@ fn digit(input: &str) -> Option<(char, &str)> {
     plus(input)
 }
 
-
 // parse many digit "3333a"
 // ((many digit) "3333a") -> Some(("3333","a"))
 #[allow(dead_code)]
@@ -93,52 +86,49 @@ fn many(
 // 左でパースした後に、その結果を入力に右でパーサーした結果を出力するパーサー
 // let get_second = naive_left(any_char, any_char)
 // get_second("abcd") // [b, cd]
-fn discard_left(pA: impl Fn(&str) -> Option<(char, &str)>, pB: impl Fn(&str) -> Option<(char, &str)>)-> impl Fn(&str) -> Option<(char, &str)>{
+fn discard_left(
+    pA: impl Fn(&str) -> Option<(char, &str)>,
+    pB: impl Fn(&str) -> Option<(char, &str)>,
+) -> impl Fn(&str) -> Option<(char, &str)> {
     move |input| {
-        let left_parsed = pA(input).and_then(|(parsed, rest)|{
-            pB(rest)
-        });
+        let left_parsed = pA(input).and_then(|(parsed, rest)| pB(rest));
         left_parsed
     }
 }
 
 // 右でパースした後に、その結果を入力に右でパーサーした結果を出力するパーサー
-fn naive_discard_right(pA: impl Fn(&str) -> Option<(char, &str)>, pB: impl Fn(&str) -> Option<(char, &str)>)-> impl Fn(&str) -> Option<(char, &str)>{
+fn naive_discard_right(
+    pA: impl Fn(&str) -> Option<(char, &str)>,
+    pB: impl Fn(&str) -> Option<(char, &str)>,
+) -> impl Fn(&str) -> Option<(char, &str)> {
     move |input| {
-        let left_parsed = pA(input).and_then(|(parsed, rest)|{
+        let left_parsed = pA(input).and_then(|(parsed, rest)| {
             let parsed2 = pB(rest);
             // Q: ここも and_then で書きたいが、parsed を使いたいのでかけない
             match parsed2 {
-                    Some(s2) => {
-                        Some((parsed, s2.1))
-                    }
-                    None => {
-                        None
-                    }
-                }
+                Some(s2) => Some((parsed, s2.1)),
+                None => None,
+            }
         });
         left_parsed
     }
 }
 
-fn alternative(pA: impl Fn(&str) -> Option<(char, &str)>, pB: impl Fn(&str) -> Option<(char, &str)>) ->impl Fn(&str) -> Option<(char, &str)> {
+fn alternative(
+    pA: impl Fn(&str) -> Option<(char, &str)>,
+    pB: impl Fn(&str) -> Option<(char, &str)>,
+) -> impl Fn(&str) -> Option<(char, &str)> {
     move |input| {
         let parsed = pA(input);
         match parsed {
-            Some(p) => {
-                Some(p)
-            },
-            None => {
-                pB(input)
-            }
+            Some(p) => Some(p),
+            None => pB(input),
         }
     }
 }
 
 // exec(1 + 3)
-fn exec(expr: &str){
-
-}
+fn exec(expr: &str) {}
 
 #[cfg(test)]
 mod tests {
@@ -188,14 +178,14 @@ mod tests {
     }
 
     #[test]
-    fn naive_discard_left_test(){
+    fn naive_discard_left_test() {
         let left_parser = discard_left(any_char, any_char);
         let actual = left_parser("abcde");
         assert_eq!(actual, Some(('b', "cde")));
     }
 
     #[test]
-    fn naive_discard_right_test(){
+    fn naive_discard_right_test() {
         let right_parser = naive_discard_right(any_char, any_char);
         let actual = right_parser("abcde");
         assert_eq!(actual, Some(('a', "cde")));
@@ -204,21 +194,21 @@ mod tests {
     // let get_middle = get_char *> get_char <* get_char
     // let get_middle =right_parser(left_parser(get_char, get_char), get_char)
     #[test]
-    fn middle(){
+    fn middle() {
         let middle_parser = discard_left(any_char, naive_discard_right(any_char, any_char));
         let actual = middle_parser("abc");
         assert_eq!(actual, Some(('b', "")));
     }
 
     #[test]
-    fn prefix_test(){
+    fn prefix_test() {
         let start_paren_parser = prefix('(');
         let actual = start_paren_parser("(1+2)*3");
         assert_eq!(actual, Some(('(', "1+2)*3")));
     }
 
     #[test]
-    fn alternative_test(){
+    fn alternative_test() {
         let plus_or_digit_parser = alternative(digit, plus);
         let actual = plus_or_digit_parser("+2");
         assert_eq!(actual, Some(('+', "2")));
