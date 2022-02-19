@@ -1,85 +1,62 @@
-use std::any;
 
+   
+#[allow(dead_code)]
 struct Input {
     pos: u32,
     text: String,
 }
 
+#[allow(dead_code)]
 struct Ast {}
 
+#[allow(dead_code)]
 struct Parser {}
 
 // any_char, plus とかの parser を共通の型で縛りたい
 
-fn any_char<'a>(input: &'a str) -> Option<(char, &'a str)> {
-    match &input.chars().nth(0) {
-        Some(_) => {
-            let rest = &input[1..];
-            let first = &input[..1];
-            let fisrt_char = first.chars().nth(0).unwrap();
-            return Some((fisrt_char, rest));
-        }
-        None => None,
+#[allow(dead_code)]
+fn any_char(input: &str) -> Option<(char, &str)> {
+    input.chars().next().map(|first| (first, &input[1..]))
+}
+
+// 条件を渡すとパーサーを作ってくれる
+#[allow(dead_code)]
+fn sat(
+    pred: impl Fn(char) -> bool,
+) -> impl FnOnce(&str) -> Option<(char, &str)> {
+    move |input| -> Option<(char, &str)> {
+        any_char(input).and_then(|(parsed, rest)| pred(parsed).then(|| (parsed, rest)))
     }
 }
 
-// lto: link time optimization
-
-// 条件を渡すとパーサーを作ってくれる
-fn sat<'a>(
-    f: impl Fn(char) -> bool + 'static,
-) -> Box<dyn Fn(&'a str) -> Option<(char, &'a str)>> {
-    let parser: Box<dyn Fn(&'a str) -> Option<(char, &'a str)>> =
-        Box::new(move |input: &'a str| -> Option<(char, &'a str)> {
-            let item = any_char(input);
-            match item {
-                Some(v) => {
-                    let parsed = v.0;
-                    let is_ok = f(parsed);
-                    let rest = v.1;
-                    let return_data = (parsed, rest);
-                    if is_ok {
-                        return Some(return_data);
-                    }
-                    None
-                }
-                None => None,
-            }
-        });
-    parser
-}
-
+#[allow(dead_code)]
 fn is_num(input: char) -> bool {
-    input == '1'
-        || input == '2'
-        || input == '3'
-        || input == '4'
-        || input == '5'
-        || input == '6'
-        || input == '7'
-        || input == '8'
-        || input == '9'
-        || input == '0'
+    matches!(input, '0'..='9')
 }
 
+#[allow(dead_code)]
 fn is_plus(input: char) -> bool {
-    input == '+'
+    matches!(input, '+')
 }
 
+#[allow(dead_code)]
 fn is_factor(input: char) -> bool {
-    input == '*'
+    matches!(input, '*')
 }
 
+#[allow(dead_code)]
 fn plus(input: &str) -> Option<(char, &str)> {
     let plus = sat(is_plus);
     plus(input)
 }
 
+#[allow(dead_code)]
 fn factor(input: &str) -> Option<(char, &str)> {
     let plus = sat(is_factor);
     plus(input)
 }
 
+#[allow(dead_code)]
 fn num(input: &str) -> Option<(char, &str)> {
     let plus = sat(is_num);
     plus(input)
@@ -87,13 +64,25 @@ fn num(input: &str) -> Option<(char, &str)> {
 
 // parse many digit "3333a"
 // ((many digit) "3333a") -> Some(("3333","a"))
-fn many<'a>(parser: impl Fn(&'a str) -> Option<(&'a str, &'a str)>) -> Option<(&'a Vec<char>, &'a str)> {
-    None
+#[allow(dead_code)]
+fn many(
+    parser: impl Fn(&str) -> Option<(char, &str)>,
+) -> impl FnOnce(&str) -> Option<(String, &str)> {
+    move |input| {
+        let mut result = String::new();
+        result.reserve(input.len());
+        let mut target = input;
+        while let Some((accecpted, rest)) = parser(target) {
+            result.push(accecpted);
+            target = rest;
+        }
+        (!result.is_empty()).then(|| (result, target))
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::parser::{any_char, plus};
+    use super::*;
 
     #[test]
     fn any_char_test() {
@@ -129,5 +118,12 @@ mod tests {
     fn not_included_plus() {
         let actual = plus("12");
         assert_eq!(actual, None);
+    }
+
+    #[test]
+    fn many_parse() {
+        let many_parser = many(num);
+        let actual = many_parser("123a");
+        assert_eq!(actual, Some(("123".to_string(), "a")));
     }
 }
